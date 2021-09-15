@@ -166,9 +166,62 @@ REMEMBER: In your report, make sure to include code that can reproduce the answe
 The general linear model: $Y = X \beta + \epsilon$:  
 Do a linear regression, expressing fuel usage as a function of weight using the function __lm__  
 ```{r, eval=FALSE}
+# create model
 data(mtcars)
-model <- lm(formula=..., data=...)
+model <- lm(formula=mpg ~ wt, data=mtcars)
+
+summary(model)
 ```
+
+1. Extracting stuff from the model
+```{r}
+# estimated beta
+b_estimate <- model$coefficients
+
+# model design matrix
+X <- model.matrix(model)
+X
+
+# actual y-values
+y_actual <- mtcars$mpg
+
+# estimated y-values
+y_hat <- predict(model)
+
+# error from model
+residuals <- model$residuals
+
+
+
+# create plot of y against y-hat
+library(tidyverse)
+ggplot(data = NULL, aes(y_actual, y_hat)) +  
+  geom_point()
+
+plot(y_actual, y_hat)
+arrows(y_actual, y_actual, x1 = y_actual, y1 = y_hat, length = 0.1, angle = 3,
+       code = 2, col = par("fg"), lty = par("lty"),
+       lwd = par("lwd"))
+
+
+```
+
+
+```{r}
+# adding weight squared
+X_new <- as.data.frame(X)
+X_new$wt_squared <- X_new$wt^2
+
+X_new
+
+# ordinary least squares
+X_new <- as.matrix(X_new)
+bhat <- solve(t(X_new) %*% X_new) %*% t(X_new) %*% y_actual
+bhat
+
+```
+
+
 1. extract $\hat{\beta}$, $Y$, $\hat{Y}$, $X$ and $\epsilon$ from __model__ (hint: have a look at the function __model.matrix__)  
     i. create a plot that illustrates $Y$ and $\hat{Y}$ (if you are feeling ambitious, also include $\epsilon$ (hint: you can use the function __arrows__))
 2. estimate $\beta$ for a quadratic model ($y = {\beta}_{2} x^2 + {\beta}_{1} x + {\beta}_{0}$) using ordinary least squares _without_ using __lm__; $\hat{\beta} = {({X}^{T} X)}^{-1} {X}^{T} Y$ (hint: add a third column to $X$ from step 1)
