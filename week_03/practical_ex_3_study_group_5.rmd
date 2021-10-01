@@ -100,6 +100,23 @@ _correct_:
 Indicates whether the object response matches the *target_type* (i.e, whether the participant answered correctly.) 
 *Class* This is binary data (coded as 0 = incorrect and 1 = correct) and should be coded as factor.
 
+*Fixing the Classes*
+```{r}
+data$trial.type <- as.factor(data$trial.type)
+data$pas <- as.factor(data$pas)
+data$trial <- as.factor(data$trial)
+data$cue <- as.factor(data$cue)
+data$task <- as.factor(data$task)
+data$target.type <- as.factor(data$target.type)
+data$obj.resp <- as.factor(data$obj.resp)
+data$subject <- as.factor(data$subject)
+data$correct <- as.factor(data$correct)
+
+ls.str(data)
+
+
+```
+
 
 
   iii. for the staircasing part __only__, create a plot for each subject where you plot the estimated function (on the _target.contrast_ range from 0-1) based on the fitted values of a model (use `glm`) that models _correct_ as dependent on _target.contrast_. These plots will be our _no-pooling_ model. Comment on the fits - do we have enough data to plot the logistic functions?
@@ -155,22 +172,108 @@ ggplot(staircase, (aes(x = target.contrast, y = correct)))+
   facet_wrap(.~subject)+ 
   labs(title = "Partial Pooling") +
   theme_bw()
-
 ```
 
 
-  v. in your own words, describe how the partial pooling model allows for a better fit for each subject 
-The partial 
+  v. in your own words, describe how the partial pooling model allows for a better fit for each subject
+  
+Compared to the complete pooling model, the partial pooling model adapts the fit to both the general tendencies in the data as well as the subjective differences. Hence the fit for each subject becomes better, because we account for the fact that they have different baselines and slopes. 
 
 ## Exercise 2
 
 Now we __only__ look at the _experiment_ trials (_trial.type_)  
 
 1) Pick four subjects and plot their Quantile-Quantile (Q-Q) plots for the residuals of their objective response times (_rt.obj_) based on a model where only intercept is modelled  
-    i. comment on these    
-    ii. does a log-transformation of the response time data improve the Q-Q-plots?  
+```{r 2.1}
+experiment <- data %>% filter(trial.type== "experiment")
+
+subject7 <- experiment %>% filter(subject == 7)
+subject10 <- experiment %>% filter(subject == 10)
+subject12 <- experiment %>% filter(subject == 12)
+subject29 <- experiment %>% filter(subject == 29)
+
+model7 <- lm(rt.obj ~ 1, data = subject7)
+qq7 <- ggplot(subject7, aes(sample=residuals(model7))) +
+  stat_qq() +
+  geom_qq_line() +
+  labs(title = "Subject 7") +
+  theme_bw()
+
+model10 <- lm(rt.obj ~ 1, data = subject10)
+qq10 <- ggplot(subject10, aes(sample=residuals(model10))) +
+  stat_qq() +
+  geom_qq_line() +
+  labs(title = "Subject 10") +
+  theme_bw()  
+
+model12 <- lm(rt.obj ~ 1, data = subject12)
+qq12 <- ggplot(subject12, aes(sample=residuals(model12))) +
+  stat_qq() +
+  geom_qq_line() +
+  labs(title = "Subject 12") +
+  theme_bw()  
+
+model29 <- lm(rt.obj ~ 1, data = subject29)
+qq29 <- ggplot(subject29, aes(sample=residuals(model29))) +
+  stat_qq() +
+  geom_qq_line() +
+  labs(title = "Subject 29") +
+  theme_bw()  
+
+ggpubr::ggarrange(qq7, qq10, qq12, qq29)
+```
+
+
+   i. comment on these 
+We should log-transform reaction times, since we have some extreme sample values that distort the image.
+
+  ii. does a log-transformation of the response time data improve the Q-Q-plots? 
+```{r 2.1ii}
+model7log <- lm(log(rt.obj)~1, data = subject7)
+qq7log <- ggplot(subject7, aes(sample = residuals(model7log)))+
+  stat_qq()+
+  geom_qq_line()+
+  labs(title = "Subject 7 (log)")+
+  theme_bw()
+
+model10log <- lm(log(rt.obj)~1, data = subject10)
+qq10log <- ggplot(subject10, aes(sample = residuals(model10log)))+
+  stat_qq()+
+  geom_qq_line()+
+  labs(title = "Subject 10 (log)")+
+  theme_bw()
+
+model12log <- lm(log(rt.obj)~1, data = subject12)
+qq12log <- ggplot(subject12, aes(sample = residuals(model12log)))+
+  stat_qq()+
+  geom_qq_line()+
+  labs(title = "Subject 12 (log)")+
+  theme_bw()
+
+model29log <- lm(log(rt.obj)~1, data = subject29)
+qq29log <- ggplot(subject29, aes(sample = residuals(model29log)))+
+  stat_qq()+
+  geom_qq_line()+
+  labs(title = "Subject 29 (log)")+
+  theme_bw()
+
+ggpubr::ggarrange(qq7log, qq10log, qq12log, qq29log)
+
+```
+
+The log-transformation clearly improves the qq-plot as the points are much closer to the qq-line. However, the transformation did not fix it completely as points forsubject10 is still very off the line for instance.
+
 2) Now do a partial pooling model modelling objective response times as dependent on _task_? (set `REML=FALSE` in your `lmer`-specification)  
-    i. which would you include among your random effects and why? (support your choices with relevant measures, taking into account variance explained and number of parameters going into the modelling)  
+```{r 2.2}
+task_model <- lmer(rt.obj ~ task + (1|subject) + (1|trial), REML=FALSE, data = experiment)
+summary(task_model)
+```
+
+
+  i. which would you include among your random effects and why? (support your choices with relevant measures, taking into account variance explained and number of parameters going into the modelling)  
+
+We include subject and trial as random effects. 
+  
     ii. explain in your own words what your chosen models says about response times between the different tasks  
 3) Now add _pas_ and its interaction with _task_ to the fixed effects  
     i. how many types of group intercepts (random effects) can you add without ending up with convergence issues or singular fits?  
