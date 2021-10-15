@@ -33,7 +33,7 @@ The data is associated with Experiment 2 of the article at the following DOI htt
 
 #### 1) Put the data from all subjects into a single data frame  
 ```{r}
-data <- read_bulk(directory = "/Users/minaalmasi/Documents/Cognitive_Science/Methods_3/methods3_code/github_methods_3/week_03/experiment_2")
+data <- read_bulk(directory = "/Users/")
 ```
 
 #### 2) Describe the data and construct extra variables from the existing variables  
