@@ -228,9 +228,15 @@ it did :D
 ##### ii. plot the estimated group-level functions over `xlim=c(0, 8)` for each of the four PAS-ratings - add this plot to your report (see: 5.2.i) and add a description of your chosen model. Describe how _pas_ affects accuracy together with target duration if at all. Also comment on the estimated functions' behaviour at target.frame=0 - is that behaviour reasonable?  
 
 ```{r}
-interact_plot(model = m6, pred = "target.frames", modx = "pas") 
+ggplot(data, aes(x = target.frames, y = as.numeric(as.character(correct)), color = pas))+
+  geom_smooth(method = "glm", se = FALSE, method.args = list(family = "binomial"), size = 0.7) +
+  xlim(min = 0, max = 8)+
+  labs(y = "correct") + 
+  theme_bw()
 ```
 
+REPORT
+m6 includes an interaction between _pas_ and _target.frames_ as well as their individual effect. The plot illustrates why this interaction is meaningful to include. We can deduce that _target.frames_ barely affects correctness if _pas_ = 1. Contrarily, for _pas_ = 2 and 3 in particular, _target.frames_ affects correctness a lot. _pas_ = 4 is consistently above all other levels of pas regardless of the _target.frames_, suggesting that being very sure about your answer makes you more likely to answer correctly regardless of the number of target frames. All of the 4 functions are undefined at _target.frames_ = 0. This behavior is reasonable considering that you cannot show a target in 0 frames - hence this was not done in the experiment. 
 
 
 # EXERCISE 6 - Test linear hypotheses
